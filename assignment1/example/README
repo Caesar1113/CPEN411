@@ -1,0 +1,7 @@
+Compile this folder with the following command:
+$ bash quick_make.sh
+
+Run the example with the code below
+../pin-dir/pin -t obj-intel64/example.so -- /bin/ls 
+
+Check the ../output folder to see the example.out file

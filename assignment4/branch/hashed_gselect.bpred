@@ -1,0 +1,73 @@
+#include "ooo_cpu.h"
+
+#define TABLE_SIZE 16384
+#define PRIME 509
+#define MAX_COUNTER 3
+
+int table[NUM_CPUS][TABLE_SIZE];
+int table_index=0;
+int history[NUM_CPUS];
+int prev_taken=0;
+
+int index_h=0;
+int temp;
+
+
+void O3_CPU::initialize_branch_predictor()
+{
+    cout << "CPU " << cpu << "Branch predictor" << endl;
+    for( int k=0;k<NUM_CPUS;k++){
+        history[k]=0;
+    } 
+
+    for(int i = 0; i < TABLE_SIZE; i++)
+        table[cpu][i] = 0;
+
+ 
+
+}
+
+uint8_t O3_CPU::predict_branch(uint64_t ip)
+{
+    uint32_t hash = ip % PRIME;
+    uint8_t prediction = 0;
+
+    index_h=history[cpu]^(hash%32);
+
+    //---- FILL THE PART BELOW THIS ----//
+    if(table[cpu][index_h*512+hash]>1){
+        prediction =1;
+    }
+    else {
+        prediction=0;
+    }
+
+
+    //---- FILL THE PART ABOVE THIS ----//
+	
+    return prediction;
+}
+
+void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
+{
+    uint32_t hash = ip % PRIME;
+
+    //---- FILL THE PART BELOW THIS ----//
+    if(taken){
+        table[cpu][index_h*512+hash] ++;
+    }
+    else{
+        table[cpu][index_h*512+hash] --;
+    }
+    if(table[cpu][index_h*512+hash]>MAX_COUNTER){
+        table[cpu][index_h*512+hash]=MAX_COUNTER;
+    }
+    else if(table[cpu][index_h*512+hash]<0){
+        table[cpu][index_h*512+hash]=0;
+    }
+
+    history[cpu]= (((history[cpu] >> 1) + taken * (int)pow(2,4)))%(int)pow(2,5);
+
+    //---- FILL THE PART ABOVE THIS ----//
+    return;
+}
